@@ -1,31 +1,47 @@
 
+import lombok.extern.slf4j.Slf4j;
+import model.FullTransaction;
 import model.Transaction;
-import utils.CsvToJson;
-import utils.JsonToTransactionsList;
-import utils.TransactionsCSVCreator;
-import utils.UnzipFile;
+import utils.CsvJsonReader;
+import utils.JsonObjectMapper;
+import utils.ObjectJsonMapper;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class TestMain {
     public static void main(String[] args) throws IOException {
-        //unzip
-        UnzipFile unzipFile = new UnzipFile();
-        unzipFile.unzip();
 
-        //reading csv file to json string
-        CsvToJson csvToJson = new CsvToJson();
-        String json = csvToJson.getJson();
-        System.out.println(csvToJson.getJson());
+        //reading basic csv file to json string
+        CsvJsonReader csvToJson = new CsvJsonReader();
+        String json = csvToJson.getJsonFromBasicCsv();
+        log.info(json);
 
-        //mapping json string to List<Transactions>
-        JsonToTransactionsList jsonToTransactionsList = new JsonToTransactionsList();
-        List<Transaction> transactions = jsonToTransactionsList.convertJsonToObjectsList(json);
-        System.out.println(transactions);
+        //mapping json from basic csv string to List<Transactions>
+        JsonObjectMapper jsonToTransactionsList = new JsonObjectMapper();
+        List<Transaction> transactions = jsonToTransactionsList.convertJsonToTransactionList(json);
+        log.info(transactions.toString());
 
-        //creating csv file with transactions
-        TransactionsCSVCreator transactionsCSVCreator = new TransactionsCSVCreator();
-        transactionsCSVCreator.createCsvFile(transactions);
+        //mapping basic transactions to full transactions
+        List<FullTransaction> fullTransactions = new ArrayList<>();
+        for (Transaction transaction : transactions) {
+            FullTransaction fullTransaction = new FullTransaction();
+            fullTransaction.setId(transaction.getId());
+            fullTransaction.setUserId(transaction.getUserId());
+            fullTransaction.setName(transaction.getName());
+            fullTransaction.setAmount(transaction.getAmount());
+            fullTransaction.setIp(transaction.getIp());
+            fullTransactions.add(fullTransaction);
+        }
+        log.info(fullTransactions.toString());
+
+        // mapping full transaction to json
+        ObjectJsonMapper objectJsonMapper = new ObjectJsonMapper();
+        log.info(objectJsonMapper.getJson(fullTransactions));
+
+
 
     }
 }
